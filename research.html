@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <link rel="stylesheet" type="text/css" href="research.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mathplosion</title>
+    <style>
+      body {
+        font-size: 22px; /* Increase the base font size */
+      }
+      h1, h2, h3 {
+        font-size: 2.5em; /* Increase heading sizes */
+      }
+      label, p, input, button {
+        font-size: 1.6em; /* Increase other text elements */
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Opening Screen -->
+     <button id="Next" style="display: block; margin: 0 auto; margin-top: 200px; font-size: 5em; background: block; background-color: #442935; color: #ff90d6;">NEXT</button>
+ 
+    <!-- How to Play -->
+    <div id="howto" style="text-align: center; display: none;">
+      <p style="color: #442935; margin-left: 250px; margin-right: 250px; margin-top: 200px;"> Welcome to Mathplosion! </p>
+      <p style="color: #442935; margin-left: 250px; margin-right: 250px;"> The game will give you 15 seconds to answer as many problems as you can. </p>
+      <p style="color: #442935; margin-left: 250px; margin-right: 250px;"> The speed and accuracy you get will be shown at the end screen and that data will be used for research purposes. Thank you, Have fun! </p>
+
+
+      <button id="ready" style="display: none; margin: 0 auto; margin-top: 50px; font-size: 5em; background: block; background-color: #442935; color: #ff90d6;">READY</button>
+    </div>
+
+
+
+
+    <!-- Options Panel (for creating a game) -->
+    <div id="options" style="text-align: center; display: none;">
+      <h3 style="font-size: 3em;">Game Settings</h3>
+      <div class="option-field" style="margin-bottom: 20px;">
+        <label for="playerName">Enter Your Name: </label>
+        <input type="text" id="playerName" placeholder="Player Name">
+      </div>
+      <div class="option-field" style="margin-bottom: 20px;">
+        <label for="gameCode">Enter Game Code (optional): </label>
+        <input type="text" id="gameCode" placeholder="Game Code">
+      </div>
+      <button id="startGame" style="color: #442935;">Start Game</button>
+    </div>
+
+
+
+
+    <!-- Scoreboard Panel -->
+    <div id="scoreboard" style="display:none; text-align: center; margin-top: 50px;">
+      <h3 style="font-size: 2em;">History</h3>
+      <table id="scoreTable" style="margin: 0 auto; font-size: 1.2em; border-spacing: 0 10px;">
+        <thead>
+          <tr>
+            <th style="padding-right: 20px;">Attempt #</th>
+            <th style="padding-right: 20px;">Accuracy</th>
+            <th>Average Time</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Scores will be dynamically added here -->
+        </tbody>
+      </table>
+      <button id="backToOptions" style="font-size: 1.6em; margin-top: 20px; color: #442935;">Back to Options</button>
+    </div>
+
+
+
+
+    <script>
+      // Function to show the scoreboard
+      function showScoreboard() {
+      ;
+
+
+      document.getElementById("options").style.display = "none";
+      document.getElementById("scoreboard").style.display = "block";
+      }
+
+
+
+
+      // Event listener for back to options button
+      document.getElementById("backToOptions").addEventListener("click", () => {
+      document.getElementById("scoreboard").style.display = "none";
+      document.getElementById("options").style.display = "block";
+      });
+
+
+
+
+      // Add a button to view the scoreboard in the options panel
+      const viewScoresButton = document.createElement("button");
+      viewScoresButton.textContent = "View History";
+      viewScoresButton.style.color = "#442935";
+      viewScoresButton.style.fontSize = "1.6em";
+      viewScoresButton.addEventListener("click", showScoreboard);
+      document.getElementById("options").appendChild(viewScoresButton);
+    </script>
+
+
+
+
+    <!-- Game Area -->
+    <div id="game" style="display:none; text-align: center; margin-top: 250px;">
+      <p id="playerNameDisplay"></p>
+      <p class="timer">Time Left: <span id="time">15</span> seconds</p>
+      <p id="question" style="font-size: 2em;">Question:</p>
+      <input type="number" id="answerInput" placeholder="Your answer" style="font-size: 1.6em;">
+      <br>
+      <button id="submit" style="font-size: 1.6em;">Submit</button>
+      <p class="message" id="message"></p>
+      <p class="score" id="score">Score: 0</p>
+      <p class="accuracy" id="accuracy">Accuracy: 0%</p>
+    </div>
+
+
+
+
+    <!-- End Game Panel -->
+    <div id="endGamePanel" style="display:none">
+      <div>
+      </div>
+      <p>Your Final Score: <span id="finalScore">0</span></p>
+      <p>Total Questions: <span id="totalQuestions"></span></p>
+      <p>Your Accuracy: <span id="finalAccuracy">0%</span></p>
+      <p>Average Time per Question: <span id="averageTime">0</span> seconds</p>
+      <button id="restartGame" style ="color: #442935;">Restart Game</button>
+    </div>
+
+
+
+
+    <script>
+      let players = []; // Array to hold player data
+      let currentPlayer;
+      let score = 0;
+      let correctAnswers = 0;
+      let totalCorrectAnswers = 0;
+      let totalQuestions = 0;
+      let timeLeft = 15;
+      let timer;
+      let currentQuestion;
+      let difficultyLevel = 1;
+      let attempts = 0
+
+
+
+
+      // Function to start the timer (only once at the beginning)
+      function startTimer() {
+        timer = setInterval(() => {
+          timeLeft--;
+          document.getElementById("time").textContent = timeLeft;
+
+
+
+
+          if (timeLeft === 0) {
+            clearInterval(timer);
+            showEndGame();
+          }
+        }, 1000);
+      }
+
+
+
+
+    // Function to generate a random algebraic question with whole number solutions
+    function generateQuestion() {
+      let a = Math.floor(Math.random() * (difficultyLevel * 2)) + 1; // Gradually increase the coefficient range
+       let x = Math.floor(Math.random() * (difficultyLevel * 5)) + 1; // Gradually increase the range of x
+       let b = Math.floor(Math.random() * (difficultyLevel * 2)) + 1; // Gradually increase the coefficient range
+
+  let useSubtraction = Math.random() < 0.5; // Randomly decide between addition and subtraction
+
+  let c;
+  let question;
+
+  if (useSubtraction) {
+    c = a * x - b;
+    question = `${a}x - ${b} = ${c}`;
+  } else {
+    c = a * x + b;
+    question = `${a}x + ${b} = ${c}`;
+  }
+
+  const answer = x;
+  return { question, answer };
+}
+
+      // Function to update the accuracy
+      function updateAccuracy() {
+      let accuracy = (totalCorrectAnswers / (totalQuestions )) * 100;
+      if (accuracy === Infinity) {
+        accuracy = 100; // Set accuracy to 100% if there are no questions answered
+      }
+      document.getElementById("accuracy").textContent = `Accuracy: ${accuracy.toFixed(2)}%`;
+      }
+
+
+
+
+      // Function to update the average time per question
+      function updateAverageTime() {
+        const averageTime = (15) / (totalQuestions);
+        document.getElementById("averageTime").textContent = `${averageTime.toFixed(2)} `;
+      }
+
+
+
+
+      // Update the average time per question after each question
+      function nextQuestion() {
+        totalQuestions++;
+
+
+
+
+        // Gradually increase difficulty based on correct answers
+        if (correctAnswers >= 5) {
+          difficultyLevel++; // Increase difficulty gradually
+          correctAnswers = 0; // Reset the correct answers counter after increasing difficulty
+        }
+
+
+
+
+        currentQuestion = generateQuestion();
+        document.getElementById("question").textContent = `${currentQuestion.question}`;
+        document.getElementById("answerInput").value = "";
+
+
+
+
+        updateAverageTime(); // Update average time after generating the next question
+      }
+      // Function to show the howto panel
+      function showHowToPanel() {
+        document.getElementById("Next").style.display = "none";
+        document.getElementById("howto").style.display = "block";
+        document.getElementById("ready").style.display = "block";
+      }
+
+
+
+
+      // Event listener for next button to show howto panel
+      document.getElementById("Next").addEventListener("click", showHowToPanel);
+
+
+
+
+      // Event listener for ready button to show options panel
+      document.getElementById("ready").addEventListener("click", showOptionsPanel);
+     
+      // Function to show the howto panel
+      function showOptionsPanel() {
+        document.getElementById("next").style.display = "none";
+        document.getElementById("options").style.display = "block";
+      }
+
+
+
+
+      // Function to show the options panel from the howto panel
+      function showOptionsPanelFromHowto() {
+        document.getElementById("howto").style.display = "none";
+        document.getElementById("options").style.display = "block";
+      }
+
+
+
+
+      // Event listener for ready button to show options panel from howto
+      document.getElementById("ready").addEventListener("click", showOptionsPanelFromHowto);
+
+
+
+
+      // Event listener for next button
+      document.getElementById("Next").addEventListener("click", showOptionsPanel);
+     
+      // Function to start the game
+      function startGame() {
+        const playerName = document.getElementById("playerName").value || "Player";
+        const gameCode = document.getElementById("gameCode").value;
+        attempts++;
+
+
+        // Join an existing game or create a new game
+        if (gameCode === "") {
+          // Create a new game
+          currentPlayer = { name: playerName, score: 0 };
+          players.push(currentPlayer);
+        } else {
+          // Join the existing game (simulation for now)
+          currentPlayer = { name: playerName, score: 0 };
+          players.push(currentPlayer);
+        }
+
+
+        // Set the timer based on input
+        timeLeft = 15;
+
+
+        document.getElementById("playerNameDisplay").textContent = `Welcome, ${currentPlayer.name}!`;
+        document.getElementById("options").style.display = "none";
+        document.getElementById("game").style.display = "block";
+        document.getElementById("time").textContent = timeLeft;
+        startTimer();
+        nextQuestion();
+        updateAverageTime(); // Update average time after generating the next question
+
+
+        ;
+      }
+
+
+
+
+      // Function to generate the next question
+      function nextQuestion() {
+        totalQuestions++;
+
+
+
+
+        // Gradually increase difficulty based on correct answers
+        if (correctAnswers >= 5) {
+          difficultyLevel++; // Increase difficulty gradually
+          correctAnswers = 0; // Reset the correct answers counter after increasing difficulty
+        }
+
+
+
+
+        currentQuestion = generateQuestion();
+        document.getElementById("question").textContent = `${currentQuestion.question}`;
+        document.getElementById("answerInput").value = "";
+      }
+
+
+
+
+      // Function to handle submit action
+      function handleSubmit() {
+        const userAnswer = parseFloat(document.getElementById("answerInput").value);
+        if (userAnswer === currentQuestion.answer) {
+          score++;
+          currentPlayer.score++;
+          correctAnswers++;
+          totalCorrectAnswers++;
+          document.getElementById("message").textContent = "Correct!";
+        } else {
+          document.getElementById("message").textContent = `Wrong! The correct answer was ${currentQuestion.answer}.`;
+        }
+
+
+
+
+        document.getElementById("score").textContent = `Score: ${score}`;
+        updateAccuracy();
+        nextQuestion();
+        updateAverageTime(); // Update average time after generating the next question
+      }
+
+
+
+
+      // Event listener for start game button
+      document.getElementById("startGame").addEventListener("click", function() {        
+        // Reset all values when restarting
+        score = 0;
+        correctAnswers = 0;
+        totalCorrectAnswers = 0;
+        totalQuestions = 0;
+        timeLeft = 15;
+        difficultyLevel = 1;
+        startGame();
+      });
+
+
+      // Event listener for enter key to submit answer
+      document.getElementById("answerInput").addEventListener("keydown", function(event) {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          handleSubmit();
+        }
+      });
+
+
+
+
+      // Event listener for submit button
+      document.getElementById("submit").addEventListener("click", handleSubmit);
+
+
+
+
+      // Function to show the end game screen
+      function showEndGame() {
+        document.getElementById("finalScore").textContent = score;
+        document.getElementById("totalQuestions").textContent = totalQuestions;
+
+
+
+
+        const accuracy = (totalCorrectAnswers / (totalQuestions - 1)) * 100;
+        document.getElementById("finalAccuracy").textContent = `${accuracy.toFixed(2)}%`;
+
+
+
+
+        document.getElementById("game").style.display = "none";
+        document.getElementById("endGamePanel").style.display = "block";
+      }
+
+
+
+
+      // Restart game
+      document.getElementById("restartGame").addEventListener("click", () => {
+        document.getElementById("accuracy").textContent = `Accuracy: 0%`;
+        document.getElementById("endGamePanel").style.display = "none";
+        document.getElementById("options").style.display = "block";
+        const scoreTableBody = document.getElementById("scoreTable").querySelector("tbody");
+
+
+        players.forEach(player => {
+          const row = document.createElement("tr");
+          const attemptsCell = document.createElement("td");
+          const accuracyCell = document.createElement("td");
+          const averageTimeCell = document.createElement("td");
+         
+          const rowCount = scoreTableBody.rows.length; // This line counts the number of rows
+         
+          accuracyCell.textContent = `${((totalCorrectAnswers / (totalQuestions - 1)) * 100).toFixed(2)}%`;
+          averageTimeCell.textContent = `${((15) / (totalQuestions)).toFixed(2)} seconds`;
+          attemptsCell.textContent = attempts;
+  
+  
+          row.appendChild(attemptsCell);
+          row.appendChild(accuracyCell);
+          row.appendChild(averageTimeCell);
+         
+          if (attempts > rowCount) {
+          scoreTableBody.appendChild(row); // This line adds a new row
+          } else if (attempts <= rowCount) {
+          scoreTableBody.removeChild(scoreTableBody.lastChild); // This line removes the last row
+          scoreTableBody.appendChild(row); // This line adds a new row
+          }
+        });
+      });;
+    </script>
+  </body>
+</html>
