@@ -1,0 +1,14 @@
+body {
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #ff000033;
+    background-image: url('https://media-hosting.imagekit.io//c46b0cbed2d1442f/BACKGROUND.png?Expires=1835062213&Key-Pair-Id=K2ZIVPTIP2VGHC&Signature=H5dhFgy~qnZRaQBnIw4qrIn7CkxXkNgdIoSJJzp4Kssg71BJxVrHJUNJz3XlokTlNmoNFbqKOhc~y8LtD4-LJx9PLceUOkGjXTBGL3UXUJH-NZbVrxc~SV5dvA2SswCplbG2Xa8aakYDOc2YDgxn0vkgFJpOG-vl1jAkKs5~XPyNaV-8ABBk-liza~EX2hlwSIFvcDAEAfKngG5c4xQTBRFNfqUw4nQZqwPySWytyzY-z432umli3u7ESNU2ueh-OMPBV8w49VIp-idhvXac78vZp9Blb3MYjsJMjkw-~E0dPOT6OAihHF2QVmOgxcOjq43UoEDXetbetDVdjnQ8oQ__');
+    background-size: 100% 100%; /* Stretch the image to fit the entire viewport */
+    background-repeat: no-repeat; /* Prevent the image from repeating */
+    background-position: center; /* Center the image */
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    color: #442935;
+}
